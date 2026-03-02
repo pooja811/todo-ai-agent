@@ -230,13 +230,13 @@
 <body>
 
 <div class="api-notice" id="apiNotice">
-  ⚠️ <strong>Backend not connected.</strong> Start the Spring Boot server at <code>http://localhost:8080</code> and refresh.
-  <code>export ANTHROPIC_API_KEY=your-key && mvn spring-boot:run</code>
+  ⚠️ <strong>Backend not connected.</strong> Start the Spring Boot server at <code>http://localhost:8081</code> and refresh.
+  <code>export OPEN_API_KEY=your-key && mvn spring-boot:run</code>
 </div>
 
 <div class="header">
   <h1>TaskBot <span style="font-size:20px">🤖</span></h1>
-  <p>AI-powered Todo Agent · Spring AI + Anthropic Claude</p>
+  <p>AI-powered Todo Agent · Spring AI + Open AI GPT</p>
   <div class="stats-row" id="statsRow">
     <div class="stat"><div class="stat-val" id="statTotal">—</div><div class="stat-label">Total</div></div>
     <div class="stat"><div class="stat-val" style="color:#fbbf24" id="statPending">—</div><div class="stat-label">Pending</div></div>
@@ -274,10 +274,10 @@
   <div class="panel">
     <div class="panel-header">
       <div class="dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div>
-      AI Assistant (Claude)
+      AI Assistant ()
     </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="msg msg-bot">👋 Hey! I'm TaskBot, your AI todo assistant powered by Spring AI + Claude.
+      <div class="msg msg-bot">👋 Hey! I'm TaskBot, your AI todo assistant powered by Spring AI + GPT.
 
 Chat with me naturally to manage your tasks:
 • "Add review pull requests as high priority work task"
@@ -302,7 +302,7 @@ Chat with me naturally to manage your tasks:
 </div>
 
 <script>
-  const API = 'http://localhost:8080/api';
+  const API = 'http://localhost:8081/api';
   let sessionId = 'session-' + Math.random().toString(36).slice(2, 10);
   let currentFilter = 'all';
   let allTasks = [];
@@ -418,7 +418,7 @@ Chat with me naturally to manage your tasks:
       await loadStats();
     } catch (e) {
       removeTyping();
-      appendMsg("⚠️ Could not reach the Spring Boot backend. Make sure it's running at http://localhost:8080", 'bot');
+      appendMsg("⚠️ Could not reach the Spring Boot backend. Make sure it's running at http://localhost:8081", 'bot');
     }
     btn.disabled = false;
     document.getElementById('chatInput').focus();

@@ -70,7 +70,7 @@ open http://localhost:8081
 
 ### Or with Maven Wrapper
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-DANTHROPIC_API_KEY=$OPENAI_API_KEY"
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-DOPENAI_API_KEY=$OPENAI_API_KEY"
 ```
 
 ---

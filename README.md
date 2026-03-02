@@ -1,10 +1,10 @@
-# 🤖 Todo AI Agent — Spring AI + Anthropic Claude
+# 🤖 Todo AI Agent — Spring AI + Open AI
 
-A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Spring AI**, and **Anthropic Claude**. The AI agent uses Claude's tool-calling (function calling) capability to intelligently manage your tasks through natural language.
+A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Spring AI**, and **Open AI**. The AI agent uses gpt's tool-calling (function calling) capability to intelligently manage your tasks through natural language.
 
 ## ✨ Features
 
-- **Natural Language Interface** — Chat with Claude to manage tasks
+- **Natural Language Interface** — Chat with OpenAI to manage tasks
 - **Spring AI Tool Calling** — 12 AI tools registered via `@Tool` annotations
 - **Conversation Memory** — Per-session chat history via `InMemoryChatMemory`
 - **Full CRUD REST API** — Traditional endpoints alongside the AI agent
@@ -37,7 +37,7 @@ A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Sp
          │  Tool Calls
    ┌─────▼──────────────┐
    │    TodoTools        │
-   │  @Tool methods      │◄──── Claude LLM decides
+   │  @Tool methods      │◄──── Open AI LLM decides
    │  (12 tools)         │      which tools to call
    └─────┬──────────────┘
          │
@@ -54,24 +54,24 @@ A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Sp
 ### Prerequisites
 - Java 21+
 - Maven 3.9+
-- Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
+-OPEN AI API key → [console.anthropic.com](https://console.anthropic.com)
 
 ### Run
 
 ```bash
 # 1. Set your API key
-export ANTHROPIC_API_KEY=sk-ant-your-key-here
+export OPENAI_API_KEY=sk-ant-your-key-here
 
 # 2. Build and run
 mvn spring-boot:run
 
 # 3. Open browser
-open http://localhost:8080
+open http://localhost:8081
 ```
 
 ### Or with Maven Wrapper
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-DANTHROPIC_API_KEY=$ANTHROPIC_API_KEY"
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-DANTHROPIC_API_KEY=$OPENAI_API_KEY"
 ```
 
 ---
@@ -131,14 +131,14 @@ Response:
 
 ## 🔧 Configuration
 
-`src/main/resources/application.properties`
+`src/main/resources/application.yml`
 
 ```properties
 # Model selection
-spring.ai.anthropic.chat.options.model=claude-3-5-sonnet-20241022
+spring.ai.openai.chat.options.model=gpt-4o-mini
 
 # Tune response creativity
-spring.ai.anthropic.chat.options.temperature=0.7
+spring.ai.openai.chat.options.temperature=0.7
 
 # H2 console (dev only)
 spring.h2.console.enabled=true   # http://localhost:8080/h2-console
@@ -173,7 +173,7 @@ The `TodoTools` class exposes these tools to Claude via `@Tool`:
 | Layer | Technology |
 |---|---|
 | Framework | Spring Boot 3.3 |
-| AI | Spring AI 1.0 + Anthropic Claude |
+| AI | Spring AI 1.0 + OPEN AI |
 | Database | H2 (in-memory) / JPA / Hibernate |
 | Validation | Jakarta Validation |
 | Boilerplate | Lombok |

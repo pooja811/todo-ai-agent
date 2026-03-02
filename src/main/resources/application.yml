@@ -1,0 +1,52 @@
+# ============================================================
+# Todo AI Agent - Application Configuration
+# ============================================================
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: todo-ai-agent
+
+  # ==========================================================
+  # Spring AI - OpenAI Configuration
+  # ==========================================================
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          # max-tokens: 2048
+          temperature: 0.7
+
+  # ==========================================================
+  # Database - H2 In-Memory
+  # ==========================================================
+  datasource:
+    url: jdbc:h2:mem:tododb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# ============================================================
+# Logging
+# ============================================================
+logging:
+  level:
+    com.example.todoai: DEBUG
+    org.springframework.ai: INFO
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %msg%n"

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TaskBot — AI Todo Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #09090e;
+    --surface: #111119;
+    --card: #15151f;
+    --border: #1f1f30;
+    --accent: #7c6af7;
+    --accent-dim: rgba(124,106,247,0.12);
+    --accent-bright: #a094ff;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --muted: #566075;
+    --radius: 12px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    width: 100%;
+    max-width: 960px;
+    margin-bottom: 24px;
+  }
+  .header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent-bright), #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p { color: var(--muted); font-size: 13px; margin-top: 3px; }
+
+  .stats-row {
+    display: flex;
+    gap: 20px;
+    margin-top: 16px;
+    padding: 14px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── MAIN GRID ── */
+  .main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 960px; }
+  @media(max-width: 700px) { .main { grid-template-columns: 1fr; } }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* ── TASKS ── */
+  .filters { display: flex; gap: 0; padding: 10px 14px 0; border-bottom: 1px solid var(--border); }
+  .filter-btn {
+    background: none; border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 7px 12px;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: all .2s;
+  }
+  .filter-btn.active, .filter-btn:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .task-list { flex: 1; overflow-y: auto; padding: 10px; max-height: 400px; }
+  .task-list::-webkit-scrollbar { width: 3px; }
+  .task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all .2s;
+    animation: fadeUp .25s ease;
+  }
+  .task-item:hover { border-color: rgba(124,106,247,.35); background: var(--accent-dim); }
+  .task-item.completed { opacity: .45; }
+
+  .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--muted);
+    background: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+    transition: all .2s;
+  }
+  .check.done { background: var(--accent); border-color: var(--accent); }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task-item.completed .task-title { text-decoration: line-through; color: var(--muted); }
+  .task-meta { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .badge {
+    font-size: 9px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 7px; border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-high   { color: var(--red);    background: rgba(248,113,113,.12); }
+  .badge-medium { color: var(--yellow); background: rgba(251,191,36,.12); }
+  .badge-low    { color: var(--green);  background: rgba(74,222,128,.12); }
+  .badge-cat    { color: var(--muted);  background: rgba(255,255,255,.05); }
+  .badge-status { color: var(--accent); background: var(--accent-dim); }
+
+  .del-btn { background: none; border: none; color: var(--border); cursor: pointer; font-size: 16px; padding: 0 2px; flex-shrink: 0; transition: color .2s; line-height: 1; }
+  .del-btn:hover { color: var(--red); }
+
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+  .empty .emoji { font-size: 28px; margin-bottom: 8px; }
+
+  /* ── CHAT ── */
+  .chat-messages { flex: 1; overflow-y: auto; padding: 14px; max-height: 360px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg { max-width: 86%; padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.55; animation: fadeUp .2s ease; white-space: pre-wrap; word-break: break-word; }
+  .msg-user { align-self: flex-end; background: var(--accent); color: #fff; border-radius: 14px 14px 4px 14px; }
+  .msg-bot  { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; }
+
+  .typing { display: flex; gap: 4px; padding: 10px 14px; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+
+  .chat-input-area { padding: 12px 14px; border-top: 1px solid var(--border); }
+  .quick-chips { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .chip {
+    background: var(--accent-dim); border: 1px solid var(--border);
+    border-radius: 20px; color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: 11px; padding: 4px 11px; cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .input-row { display: flex; gap: 8px; }
+  .chat-input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 13px; color: var(--text);
+    font-family: 'Syne', sans-serif; font-size: 13px; outline: none;
+    transition: border-color .2s;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    background: var(--accent); border: none; border-radius: 10px;
+    padding: 9px 18px; color: #fff; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+    transition: all .15s;
+  }
+  .send-btn:hover { background: var(--accent-bright); transform: scale(1.03); }
+  .send-btn:active { transform: scale(.97); }
+  .send-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  /* ── PROGRESS ── */
+  .progress-bar { height: 3px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 12px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 4px; transition: width .6s ease; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse  { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ── API CONFIG NOTICE ── */
+  .api-notice {
+    width: 100%; max-width: 960px; margin-bottom: 16px;
+    padding: 12px 16px; background: rgba(251,191,36,.08);
+    border: 1px solid rgba(251,191,36,.25); border-radius: var(--radius);
+    font-size: 12px; color: var(--yellow); display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="api-notice" id="apiNotice">
+  ⚠️ <strong>Backend not connected.</strong> Start the Spring Boot server at <code>http://localhost:8080</code> and refresh.
+  <code>export ANTHROPIC_API_KEY=your-key && mvn spring-boot:run</code>
+</div>
+
+<div class="header">
+  <h1>TaskBot <span style="font-size:20px">🤖</span></h1>
+  <p>AI-powered Todo Agent · Spring AI + Anthropic Claude</p>
+  <div class="stats-row" id="statsRow">
+    <div class="stat"><div class="stat-val" id="statTotal">—</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-val" style="color:#fbbf24" id="statPending">—</div><div class="stat-label">Pending</div></div>
+    <div class="stat"><div class="stat-val" style="color:#818cf8" id="statInProgress">—</div><div class="stat-label">In Progress</div></div>
+    <div class="stat"><div class="stat-val" style="color:#4ade80" id="statCompleted">—</div><div class="stat-label">Done</div></div>
+    <div class="stat"><div class="stat-val" style="color:#f87171" id="statUrgent">—</div><div class="stat-label">Urgent</div></div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div>
+      <span style="font-size:11px;color:var(--muted)">Agent Online</span>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div class="main">
+  <!-- Tasks Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="dot" style="background:#818cf8"></div>
+      Task List
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('PENDING', this)">Pending</button>
+      <button class="filter-btn" onclick="setFilter('IN_PROGRESS', this)">Active</button>
+      <button class="filter-btn" onclick="setFilter('COMPLETED', this)">Done</button>
+    </div>
+    <div class="task-list" id="taskList">
+      <div class="empty"><div class="emoji">⏳</div>Loading tasks...</div>
+    </div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div>
+      AI Assistant (Claude)
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg msg-bot">👋 Hey! I'm TaskBot, your AI todo assistant powered by Spring AI + Claude.
+
+Chat with me naturally to manage your tasks:
+• "Add review pull requests as high priority work task"
+• "What should I focus on today?"
+• "Mark task 1 as done"
+• "Show me my stats"
+• "Clear all completed tasks"</div>
+    </div>
+    <div class="chat-input-area">
+      <div class="quick-chips">
+        <div class="chip" onclick="sendQuick('What should I focus on?')">🎯 Focus</div>
+        <div class="chip" onclick="sendQuick('Show my stats')">📊 Stats</div>
+        <div class="chip" onclick="sendQuick('Clear completed tasks')">🧹 Clear done</div>
+        <div class="chip" onclick="sendQuick('List high priority tasks')">🔴 Urgent</div>
+      </div>
+      <div class="input-row">
+        <input id="chatInput" class="chat-input" placeholder="Chat with AI agent..." onkeydown="if(event.key==='Enter') sendMessage()"/>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+  let sessionId = 'session-' + Math.random().toString(36).slice(2, 10);
+  let currentFilter = 'all';
+  let allTasks = [];
+
+  // ── Init ────────────────────────────────────────────────────────────
+  async function init() {
+    try {
+      await loadTasks();
+      await loadStats();
+    } catch (e) {
+      document.getElementById('apiNotice').style.display = 'block';
+      showOfflineDemo();
+    }
+  }
+
+  // ── Tasks ───────────────────────────────────────────────────────────
+  async function loadTasks() {
+    const res = await fetch(`${API}/todos`);
+    if (!res.ok) throw new Error('Server error');
+    allTasks = await res.json();
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const filtered = allTasks.filter(t => {
+      if (currentFilter === 'all') return true;
+      return t.status === currentFilter;
+    });
+
+    const list = document.getElementById('taskList');
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="emoji">🎉</div>${currentFilter === 'COMPLETED' ? 'No completed tasks.' : 'No tasks here!'}</div>`;
+      return;
+    }
+    list.innerHTML = filtered.map(t => `
+      <div class="task-item ${t.status === 'COMPLETED' ? 'completed' : ''}" id="task-${t.id}">
+        <button class="check ${t.status === 'COMPLETED' ? 'done' : ''}" onclick="toggleTask(${t.id}, '${t.status}')">
+          ${t.status === 'COMPLETED' ? '✓' : ''}
+        </button>
+        <div class="task-body">
+          <div class="task-title">${escHtml(t.title)}</div>
+          <div class="task-meta">
+            <span class="badge badge-${t.priority.toLowerCase()}">${t.priority}</span>
+            <span class="badge badge-cat">${catIcon(t.category)} ${t.category}</span>
+            <span class="badge badge-status">${statusIcon(t.status)} ${t.status.replace('_',' ')}</span>
+          </div>
+        </div>
+        <button class="del-btn" onclick="deleteTask(${t.id})">×</button>
+      </div>
+    `).join('');
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTasks();
+  }
+
+  async function toggleTask(id, status) {
+    const newStatus = status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    await fetch(`${API}/todos/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    await loadTasks();
+    await loadStats();
+  }
+
+  async function deleteTask(id) {
+    await fetch(`${API}/todos/${id}`, { method: 'DELETE' });
+    await loadTasks();
+    await loadStats();
+  }
+
+  // ── Stats ───────────────────────────────────────────────────────────
+  async function loadStats() {
+    const res = await fetch(`${API}/todos/stats`);
+    const s = await res.json();
+    document.getElementById('statTotal').textContent      = s.total;
+    document.getElementById('statPending').textContent    = s.pending;
+    document.getElementById('statInProgress').textContent = s.inProgress;
+    document.getElementById('statCompleted').textContent  = s.completed;
+    document.getElementById('statUrgent').textContent     = s.urgentPending;
+    const pct = s.total > 0 ? (s.completed / s.total * 100) : 0;
+    document.getElementById('progressFill').style.width   = pct + '%';
+  }
+
+  // ── Chat ────────────────────────────────────────────────────────────
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    appendMsg(msg, 'user');
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    appendTyping();
+
+    try {
+      const res = await fetch(`${API}/agent/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, sessionId })
+      });
+      const data = await res.json();
+      removeTyping();
+      appendMsg(data.reply, 'bot');
+      // Refresh tasks after agent might have modified them
+      await loadTasks();
+      await loadStats();
+    } catch (e) {
+      removeTyping();
+      appendMsg("⚠️ Could not reach the Spring Boot backend. Make sure it's running at http://localhost:8080", 'bot');
+    }
+    btn.disabled = false;
+    document.getElementById('chatInput').focus();
+  }
+
+  function sendQuick(text) {
+    document.getElementById('chatInput').value = text;
+    sendMessage();
+  }
+
+  function appendMsg(text, role) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = `msg msg-${role}`;
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function appendTyping() {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.id = 'typing-indicator';
+    div.className = 'typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing-indicator');
+    if (t) t.remove();
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function statusIcon(s) { return { PENDING:'⏳', IN_PROGRESS:'🚀', COMPLETED:'✅' }[s] || ''; }
+  function catIcon(c)    { return { WORK:'💼', PERSONAL:'✨', HEALTH:'🌿', SHOPPING:'🛒', LEARNING:'📚', OTHER:'📌' }[c] || '📌'; }
+
+  function showOfflineDemo() {
+    allTasks = [
+      { id:1, title:'Finish Q4 report', priority:'HIGH', category:'WORK', status:'PENDING' },
+      { id:2, title:'Morning run 5km', priority:'MEDIUM', category:'HEALTH', status:'PENDING' },
+      { id:3, title:'Buy groceries', priority:'MEDIUM', category:'SHOPPING', status:'COMPLETED' },
+      { id:4, title:'Learn Spring AI', priority:'HIGH', category:'LEARNING', status:'IN_PROGRESS' },
+    ];
+    renderTasks();
+    document.getElementById('statTotal').textContent = '4';
+    document.getElementById('statPending').textContent = '2';
+    document.getElementById('statInProgress').textContent = '1';
+    document.getElementById('statCompleted').textContent = '1';
+    document.getElementById('statUrgent').textContent = '2';
+    document.getElementById('progressFill').style.width = '25%';
+  }
+
+  init();
+</script>
+</body>
+</html>

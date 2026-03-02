@@ -54,8 +54,7 @@ A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Sp
 ### Prerequisites
 - Java 21+
 - Maven 3.9+
--OPEN AI API key → [console.anthropic.com](https://console.anthropic.com)
-
+-OPEN AI API key 
 ### Run
 
 ```bash

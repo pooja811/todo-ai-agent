@@ -8,7 +8,6 @@ A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Sp
 - **Spring AI Tool Calling** — 12 AI tools registered via `@Tool` annotations
 - **Conversation Memory** — Per-session chat history via `InMemoryChatMemory`
 - **Full CRUD REST API** — Traditional endpoints alongside the AI agent
-- **H2 In-Memory DB** — Zero setup, JPA/Hibernate
 - **Beautiful UI** — Included HTML/JS frontend at `/`
 
 ---
@@ -28,10 +27,10 @@ A production-ready AI-powered Todo List Agent built with **Spring Boot 3**, **Sp
    │   (AI Chat)│             │   (CRUD)    │
    └─────┬──────┘             └──────┬──────┘
          │                           │
-   ┌─────▼──────────────┐      ┌─────▼──────────┐
-   │  TodoAgentService   │      │  TodoService   │
-   │  Spring AI          │      │  JPA / H2      │
-   │  ChatClient         │      └────────────────┘
+   ┌─────▼──────────────┐       ┌─────▼──────────────────┐
+   │  TodoAgentService   │      │  TodoService           │
+   │  Spring AI          │      │  JPA / Postgres-vector │
+   │  ChatClient         │      └────────────────────────┘
    │  + InMemoryChatMemory│
    └─────┬──────────────┘
          │  Tool Calls
@@ -191,3 +190,46 @@ mvn test
 
 ## 📄 License
 MIT
+
+## Used Postgres DataBase using Docker
+
+STEP 1 - Docker Command To Run Postgres
+
+docker run -d --name postgres-ai -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=todo_ai_db -p 5432:5432 ankane/pgvector
+--------------------------------------------
+STEP 2  — Enable pgvector Extension
+
+We need to execute SQL inside the PostgresSQL container.
+
+🟢 Step 2.1 — Enter PostgresSQL Container
+
+Open your terminal and run: docker exec -it postgres-ai psql -U postgres -d todo_ai_db
+
+If successful, you’ll see something like: todo_ai_db=#
+
+That means you're inside PostgresSQL shell.
+
+🟢 Step 2.2 — Enable pgvector
+
+Inside that shell, run: CREATE EXTENSION IF NOT EXISTS vector;
+
+If successful, you’ll see: CREATE EXTENSION
+
+🟢 Step 2.3 — Verify It Worked
+
+Run: \dx
+
+You should see something like:
+
+vector | 0.x.x | public | vector data type and operators
+
+If you see vector listed → ✅ pgvector is enabled correctly.
+
+To exit PostgresSQL shell (psql), simply type: \q
+
+------------------------
+Commands to View Tables or data
+
+Inside psql, run: \dt
+To see columns: \d todo
+View Data : SELECT * FROM todo;

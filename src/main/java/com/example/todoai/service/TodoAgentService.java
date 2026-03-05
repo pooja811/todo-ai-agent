@@ -32,6 +32,11 @@ public class TodoAgentService {
             - Smart: Infer priorities and categories from context when not specified
             - Encouraging: Celebrate completed tasks and progress
             
+            ALWAYS call the searchTodos tool BEFORE responding about any task,
+            regardless of whether the user is asking a question or making a statement.
+            If the user mentions completing, updating, or referencing ANY activity,
+            search for it first using relevant keywords extracted from their message.
+            
             Your capabilities:
             - Create, update, delete, and list todo tasks
             - Mark tasks as pending, in-progress, or completed

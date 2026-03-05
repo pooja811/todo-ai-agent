@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Spring AI Tool definitions exposed to the LLM.
  * Each method annotated with @Tool becomes a callable function
- * that Claude can invoke during a conversation.
+ * that openAI can invoke during a conversation.
  */
 @Component
 @RequiredArgsConstructor

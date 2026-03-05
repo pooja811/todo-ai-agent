@@ -23,6 +23,15 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
            "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Todo> searchByKeyword(@Param("keyword") String keyword);
 
+    // New: semantic search using pgvector cosine similarity
+    @Query(value = """
+        SELECT * FROM todo
+        ORDER BY embedding <=> CAST(:embedding AS vector)
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Todo> findSimilar(@Param("embedding") String embedding,
+                           @Param("limit") int limit);
+
     @Query("SELECT t FROM Todo t WHERE t.status != 'COMPLETED' ORDER BY " +
            "CASE t.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END, " +
            "t.createdAt ASC")

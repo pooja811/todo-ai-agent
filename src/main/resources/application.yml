@@ -20,7 +20,28 @@ spring:
           model: gpt-4o-mini
           # max-tokens: 2048
           temperature: 0.7
+      # --------------------------------------------------------
+      # Embedding model — used by EmbeddingService to generate
+      # vector representations of todo content for pgvector.
+      # text-embedding-3-small is faster/cheaper; produces 1536d vectors.
+      # text-embedding-ada-002 is the classic option (also 1536d).
+      # --------------------------------------------------------
+      embedding:
+        options:
+          model: text-embedding-3-small
 
+    # ==========================================================
+    # Vector Store - pgvector
+    # Spring AI auto-configures PgVectorStore when the starter is
+    # on the classpath. Our VectorStoreConfig bean customises it.
+    # ==========================================================
+    vectorstore:
+      pgvector:
+        dimensions: 1536
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        initialize-schema: true
+        vector-table-name: todo_vector_store
   # ==========================================================
   # Database - Postgres
   # ==========================================================
@@ -31,11 +52,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 # ============================================================
 # Logging
 # ============================================================

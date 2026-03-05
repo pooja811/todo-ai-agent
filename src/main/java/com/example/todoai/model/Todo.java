@@ -55,6 +55,9 @@ public class Todo {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "vector_id", length = 64)
+    private String vectorId;
+
     // ── Enums ─────────────────────────────────────────────────────────────
 
     public enum Priority {

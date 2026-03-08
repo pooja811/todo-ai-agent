@@ -20,8 +20,7 @@ import java.util.stream.Collectors;
 public class TodoService {
 
     private final TodoRepository todoRepository;
-    @Autowired
-    private EmbeddingService embeddingService;
+    private final EmbeddingService embeddingService;
 
     // ── CRUD ────────────────────────────────────────────────────────────
 
@@ -33,9 +32,10 @@ public class TodoService {
                 .priority(priority != null ? priority : Todo.Priority.MEDIUM)
                 .category(category != null ? category : Todo.Category.OTHER)
                 .status(Todo.Status.PENDING)
-             //  .embedding(embeddingService.getEmbedding(title + " " + description))
                 .build();
         Todo saved = todoRepository.save(todo);
+        String vectorId = embeddingService.embedTodo(saved);
+        saved.setVectorId(vectorId);
         log.debug("Created todo [id={}]: {}", saved.getId(), saved.getTitle());
         return saved;
     }

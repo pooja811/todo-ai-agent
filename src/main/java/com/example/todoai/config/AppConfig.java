@@ -42,45 +42,45 @@ public class AppConfig {
         };
     }
 
-    // ── Demo Data ────────────────────────────────────────────────────────
+    // ── Create Demo Data ────────────────────────────────────────────────────────
 
-    @Bean
-    public CommandLineRunner seedDemoData(TodoService todoService) {
-        return args -> {
-            log.info("Seeding demo todo data...");
-
-            todoService.createTodo(
-                    "Finish Q4 project report",
-                    "Complete the quarterly analysis with charts",
-                    Todo.Priority.HIGH, Todo.Category.WORK);
-
-            todoService.createTodo(
-                    "Morning run 5km",
-                    "Stick to the training plan",
-                    Todo.Priority.MEDIUM, Todo.Category.HEALTH);
-
-            Todo shopping = todoService.createTodo(
-                    "Buy groceries",
-                    "Milk, eggs, bread, vegetables",
-                    Todo.Priority.MEDIUM, Todo.Category.SHOPPING);
-            todoService.updateStatus(shopping.getId(), Todo.Status.COMPLETED);
-
-            todoService.createTodo(
-                    "Learn Spring AI",
-                    "Read docs and build sample projects",
-                    Todo.Priority.HIGH, Todo.Category.LEARNING);
-
-            todoService.createTodo(
-                    "Call dentist for appointment",
-                    null,
-                    Todo.Priority.LOW, Todo.Category.PERSONAL);
-
-            todoService.createTodo(
-                    "Review pull requests",
-                    "3 PRs waiting for review on GitHub",
-                    Todo.Priority.HIGH, Todo.Category.WORK);
-
-            log.info("Demo data seeded — {} tasks created", todoService.getAllTodos().size());
-        };
-    }
+//    @Bean
+//    public CommandLineRunner seedDemoData(TodoService todoService) {
+//        return args -> {
+//            log.info("Seeding demo todo data...");
+//
+//            todoService.createTodo(
+//                    "Finish Q4 project report",
+//                    "Complete the quarterly analysis with charts",
+//                    Todo.Priority.HIGH, Todo.Category.WORK);
+//
+//            todoService.createTodo(
+//                    "Morning run 5km",
+//                    "Stick to the training plan",
+//                    Todo.Priority.MEDIUM, Todo.Category.HEALTH);
+//
+//            Todo shopping = todoService.createTodo(
+//                    "Buy groceries",
+//                    "Milk, eggs, bread, vegetables",
+//                    Todo.Priority.MEDIUM, Todo.Category.SHOPPING);
+//            todoService.updateStatus(shopping.getId(), Todo.Status.COMPLETED);
+//
+//            todoService.createTodo(
+//                    "Learn Spring AI",
+//                    "Read docs and build sample projects",
+//                    Todo.Priority.HIGH, Todo.Category.LEARNING);
+//
+//            todoService.createTodo(
+//                    "Call dentist for appointment",
+//                    null,
+//                    Todo.Priority.LOW, Todo.Category.PERSONAL);
+//
+//            todoService.createTodo(
+//                    "Review pull requests",
+//                    "3 PRs waiting for review on GitHub",
+//                    Todo.Priority.HIGH, Todo.Category.WORK);
+//
+//            log.info("Demo data seeded — {} tasks created", todoService.getAllTodos().size());
+//        };
+//    }
 }

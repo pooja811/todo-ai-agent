@@ -1,6 +1,7 @@
 package com.example.todoai.controller;
 
 import com.example.todoai.model.Todo;
+import com.example.todoai.service.RagService;
 import com.example.todoai.service.TodoAgentService;
 import com.example.todoai.service.TodoService;
 import jakarta.validation.Valid;
@@ -27,7 +28,13 @@ import java.util.UUID;
 class AgentController {
 
     private final TodoAgentService agentService;
+    private final RagService ragService;
 
+    @PostMapping("/rag")
+    public ResponseEntity<ChatResponse> rag(@Valid @RequestBody ChatRequest request) {
+        String answer = ragService.askWithContext(request.message());
+        return ResponseEntity.ok(new ChatResponse("rag", answer));
+    }
     /**
      * Main chat endpoint. Send a message to the AI agent and receive a response.
      * Include a sessionId to maintain conversation context.

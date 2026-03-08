@@ -1,6 +1,7 @@
 package com.example.todoai.tool;
 
 import com.example.todoai.model.Todo;
+import com.example.todoai.service.RagService;
 import com.example.todoai.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,26 @@ import java.util.stream.Collectors;
 public class TodoTools {
 
     private final TodoService todoService;
+    private final RagService ragService;
+
+    // ── Rag ───────────────────────────────────────────────────────────
+
+    @Tool(description = """
+        Answer a natural language question about the user's todos using RAG.
+        Use this for analytical questions like:
+        - "What should I focus on this week?"
+        - "Summarize my work tasks"
+        - "Am I on track with my health goals?"
+        """)
+    public String answerQuestionAboutTodos(
+            @ToolParam(description = "The user's question about their tasks") String question) {
+        try {
+            return ragService.askWithContext(question);
+        } catch (Exception e) {
+            log.error("RAG tool failed", e);
+            return "❌ Could not answer: " + e.getMessage();
+        }
+    }
 
     // ── Create ──────────────────────────────────────────────────────────
 

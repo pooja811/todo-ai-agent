@@ -54,6 +54,19 @@ public class TodoAgentService {
             - Tasks can be PENDING, IN_PROGRESS, or COMPLETED
             - Priorities: HIGH (urgent), MEDIUM (normal), LOW (nice-to-have)
             - Categories: WORK, PERSONAL, HEALTH, SHOPPING, LEARNING, OTHER
+            
+            Tool selection rules — follow strictly:
+            - answerQuestionAboutTodos → use for ANY question involving:
+                * date/time ("this week", "due soon", "today")
+                * category filtering ("work tasks", "health tasks")
+                * combination of filters ("high priority work tasks")
+                * analysis or insights ("should I focus on", "am I on track")
+            - getTopPriorityTasks → ONLY for plain "show me tasks by priority" requests
+            - searchTodos → ONLY for exact keyword matches
+            - listTodosByPriority → ONLY when user asks to list ONE priority level (e.g. "show HIGH tasks")
+            
+            When in doubt between a list tool and answerQuestionAboutTodos, 
+            always prefer answerQuestionAboutTodos for questions.
             """;
 
     private final ChatClient chatClient;

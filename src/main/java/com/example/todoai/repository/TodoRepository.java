@@ -25,7 +25,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     // New: semantic search using pgvector cosine similarity
     @Query(value = """
-        SELECT * FROM todo
+        SELECT * FROM todos
         ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :limit
         """, nativeQuery = true)

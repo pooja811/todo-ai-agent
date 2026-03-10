@@ -1,31 +1,20 @@
 package com.example.todoai.config;
 
-import com.example.todoai.model.Todo;
-import com.example.todoai.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.memory.ChatMemory;
-//import org.springframework.ai.chat.memory.InMemoryChatMemory;
-import org.springframework.boot.CommandLineRunner;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Application configuration: CORS, chat memory, and demo data seeding.
+ * Application configuration: CORS, demo data seeding.
  */
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class AppConfig {
-
-    // ── Chat Memory ─────────────────────────────────────────────────────
-
-//    @Bean
-//    public ChatMemory chatMemory() {
-//        return new InMemoryChatMemory();
-//    }
 
     // ── CORS ────────────────────────────────────────────────────────────
 
@@ -33,7 +22,7 @@ public class AppConfig {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
+            public void addCorsMappings(@NotNull CorsRegistry registry) {
                 registry.addMapping("/api/**")
                         .allowedOrigins("*")
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")

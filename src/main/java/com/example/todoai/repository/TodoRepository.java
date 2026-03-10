@@ -17,25 +17,10 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     List<Todo> findByCategory(Todo.Category category);
 
-    List<Todo> findByStatusAndPriority(Todo.Status status, Todo.Priority priority);
-
     @Query("SELECT t FROM Todo t WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(t.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Todo> searchByKeyword(@Param("keyword") String keyword);
 
-    // New: semantic search using pgvector cosine similarity
-    @Query(value = """
-        SELECT * FROM todos
-        ORDER BY embedding <=> CAST(:embedding AS vector)
-        LIMIT :limit
-        """, nativeQuery = true)
-    List<Todo> findSimilar(@Param("embedding") String embedding,
-                           @Param("limit") int limit);
-
-    @Query("SELECT t FROM Todo t WHERE t.status != 'COMPLETED' ORDER BY " +
-           "CASE t.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END, " +
-           "t.createdAt ASC")
-    List<Todo> findActiveSortedByPriority();
 
     @Query("SELECT COUNT(t) FROM Todo t WHERE t.status = :status")
     long countByStatus(@Param("status") Todo.Status status);

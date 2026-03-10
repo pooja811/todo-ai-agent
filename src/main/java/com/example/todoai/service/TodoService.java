@@ -21,6 +21,7 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final EmbeddingService embeddingService;
+    private final VectorSearchService  vectorSearchService;
 
     // ── CRUD ────────────────────────────────────────────────────────────
 
@@ -108,11 +109,10 @@ public class TodoService {
 
     // Semantic search: embed the user's query, find similar todos
     public List<Todo> semanticSearch(String userQuery, int topK) {
-        float[] queryEmbedding = embeddingService.getEmbedding(userQuery);
-
-        // pgvector expects a string like "[0.1, 0.2, ...]"
-        String vectorStr = Arrays.toString(queryEmbedding);
-        return todoRepository.findSimilar(vectorStr, topK);
+        return vectorSearchService.findSimilar(userQuery, topK, 0.3)
+                .stream()
+                .map(VectorSearchService.ScoredTodo::todo)
+                .toList();
     }
 
     // Agent calls this instead of the old keyword search
@@ -123,11 +123,6 @@ public class TodoService {
         List<Todo> results = semanticSearch(userMessage, 5);
         log.info("Found: {} results", results.size());
         return results;
-    }
-
-    @Transactional(readOnly = true)
-    public List<Todo> getActiveSortedByPriority() {
-        return todoRepository.findActiveSortedByPriority();
     }
 
     @Transactional(readOnly = true)

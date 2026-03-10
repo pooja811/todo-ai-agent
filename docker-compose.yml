@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+#  app:
+#    build: .
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - REDIS_HOST=redis
+#      - REDIS_PORT=6379
+#      - REDIS_PASSWORD=admin
+#    depends_on:
+#      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass admin --appendonly yes
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-ui
+    ports:
+      - "8082:8081"                  # access at http://localhost:8081
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:admin
+      - HTTP_USER=admin              # UI login username
+      - HTTP_PASSWORD=admin123       # UI login password
+    depends_on:
+      - redis
+    restart: unless-stopped
+  postgres-ai:
+    image: ankane/pgvector
+    container_name: postgres-ai
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todo_ai_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  postgres-data:

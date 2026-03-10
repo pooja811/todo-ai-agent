@@ -18,22 +18,15 @@ spring:
       chat:
         options:
           model: gpt-4o-mini
-          # max-tokens: 2048
           temperature: 0.7
-      # --------------------------------------------------------
-      # Embedding model — used by EmbeddingService to generate
-      # vector representations of todo content for pgvector.
-      # text-embedding-3-small is faster/cheaper; produces 1536d vectors.
-      # text-embedding-ada-002 is the classic option (also 1536d).
-      # --------------------------------------------------------
       embedding:
         options:
           model: text-embedding-3-small
 
     # ==========================================================
     # Vector Store - pgvector
-    # Spring AI auto-configures PgVectorStore when the starter is
-    # on the classpath. Our VectorStoreConfig bean customises it.
+    # initialize-schema: true → Spring AI creates todo_vector_store
+    # table on startup. Do NOT insert into this table via raw JDBC.
     # ==========================================================
     vectorstore:
       pgvector:
@@ -42,6 +35,7 @@ spring:
         distance-type: COSINE_DISTANCE
         initialize-schema: true
         vector-table-name: todo_vector_store
+
   # ==========================================================
   # Database - Postgres
   # ==========================================================
@@ -58,6 +52,27 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ==========================================================
+  # Redis Cache
+  # ==========================================================
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}    # 'redis' — only works in docker-compose
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:admin}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 2592000000         # 30 days in ms
+
 # ============================================================
 # Logging
 # ============================================================
@@ -65,5 +80,6 @@ logging:
   level:
     com.example.todoai: DEBUG
     org.springframework.ai: INFO
+    org.springframework.cache: TRACE   # shows Cache HIT / MISS in console
   pattern:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %msg%n"

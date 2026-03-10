@@ -1,6 +1,7 @@
 package com.example.todoai.tool;
 
 import com.example.todoai.model.Todo;
+import com.example.todoai.service.RagService;
 import com.example.todoai.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Spring AI Tool definitions exposed to the LLM.
  * Each method annotated with @Tool becomes a callable function
- * that Claude can invoke during a conversation.
+ * that openAI can invoke during a conversation.
  */
 @Component
 @RequiredArgsConstructor
@@ -22,6 +23,30 @@ import java.util.stream.Collectors;
 public class TodoTools {
 
     private final TodoService todoService;
+    private final RagService ragService;
+
+    // ── Rag ───────────────────────────────────────────────────────────
+
+    @Tool(description = """
+        Use this for ANY question that involves analysis, filtering, reasoning, 
+        or combining multiple conditions about todos. Examples:
+        - "What are my high priority WORK tasks?"       ← category + priority combo
+        - "What tasks are due this week?"               ← date reasoning
+        - "What should I focus on today?"               ← analytical
+        - "Summarize my work tasks"                     ← summarization
+        - "Am I on track with my health goals?"         ← insight
+        - "What are my high priority tasks due soon?"   ← priority + date combo
+        Use this when the question has ANY filtering, date, category, or analytical intent.
+        """)
+    public String answerQuestionAboutTodos(
+            @ToolParam(description = "The user's question about their tasks") String question) {
+        try {
+            return ragService.askWithContext(question);
+        } catch (Exception e) {
+            log.error("RAG tool failed", e);
+            return "❌ Could not answer: " + e.getMessage();
+        }
+    }
 
     // ── Create ──────────────────────────────────────────────────────────
 
@@ -77,31 +102,31 @@ public class TodoTools {
         }
     }
 
-    @Tool(description = """
-            List todos by priority level. Shows HIGH, MEDIUM, or LOW priority tasks.
-            Use when the user asks about urgent, high-priority, or low-priority tasks.
-            """)
-    public String listTodosByPriority(
-            @ToolParam(description = "Priority: HIGH, MEDIUM, or LOW") String priority) {
-        try {
-            Todo.Priority p = parsePriority(priority);
-            List<Todo> todos = todoService.getByPriority(p);
-            if (todos.isEmpty()) return "📭 No %s priority tasks found.".formatted(priority);
-            return formatTodoList("🎯 %s Priority Tasks".formatted(capitalize(priority)), todos);
-        } catch (IllegalArgumentException e) {
-            return "❌ Invalid priority. Use: HIGH, MEDIUM, or LOW";
-        }
-    }
+//    @Tool(description = """
+//            List todos by priority level. Shows HIGH, MEDIUM, or LOW priority tasks.
+//            Use when the user asks about urgent, high-priority, or low-priority tasks.
+//            """)
+//    public String listTodosByPriority(
+//            @ToolParam(description = "Priority: HIGH, MEDIUM, or LOW") String priority) {
+//        try {
+//            Todo.Priority p = parsePriority(priority);
+//            List<Todo> todos = todoService.getByPriority(p);
+//            if (todos.isEmpty()) return "📭 No %s priority tasks found.".formatted(priority);
+//            return formatTodoList("🎯 %s Priority Tasks".formatted(capitalize(priority)), todos);
+//        } catch (IllegalArgumentException e) {
+//            return "❌ Invalid priority. Use: HIGH, MEDIUM, or LOW";
+//        }
+//    }
 
-    @Tool(description = """
-            Get active (non-completed) tasks sorted by priority — HIGH first.
-            Use when user asks 'what should I focus on', 'what's most important', or wants a prioritized view.
-            """)
-    public String getTopPriorityTasks() {
-        List<Todo> todos = todoService.getActiveSortedByPriority();
-        if (todos.isEmpty()) return "🎉 Nothing pending! All tasks are completed.";
-        return formatTodoList("🔥 Active Tasks by Priority", todos);
-    }
+//    @Tool(description = """
+//            Get active (non-completed) tasks sorted by priority — HIGH first.
+//            Use when user asks 'what should I focus on', 'what's most important', or wants a prioritized view.
+//            """)
+//    public String getTopPriorityTasks() {
+//        List<Todo> todos = todoService.getActiveSortedByPriority();
+//        if (todos.isEmpty()) return "🎉 Nothing pending! All tasks are completed.";
+//        return formatTodoList("🔥 Active Tasks by Priority", todos);
+//    }
 
     // ── Update ──────────────────────────────────────────────────────────
 

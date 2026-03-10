@@ -4,11 +4,14 @@ import com.example.todoai.model.Todo;
 import com.example.todoai.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +20,8 @@ import java.util.Optional;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final EmbeddingService embeddingService;
+    private final VectorSearchService  vectorSearchService;
 
     // ── CRUD ────────────────────────────────────────────────────────────
 
@@ -30,6 +35,8 @@ public class TodoService {
                 .status(Todo.Status.PENDING)
                 .build();
         Todo saved = todoRepository.save(todo);
+        String vectorId = embeddingService.embedTodo(saved);
+        saved.setVectorId(vectorId);
         log.debug("Created todo [id={}]: {}", saved.getId(), saved.getTitle());
         return saved;
     }
@@ -100,14 +107,22 @@ public class TodoService {
         return todoRepository.findByCategory(category);
     }
 
-    @Transactional(readOnly = true)
-    public List<Todo> searchTodos(String keyword) {
-        return todoRepository.searchByKeyword(keyword);
+    // Semantic search: embed the user's query, find similar todos
+    public List<Todo> semanticSearch(String userQuery, int topK) {
+        return vectorSearchService.findSimilar(userQuery, topK, 0.3)
+                .stream()
+                .map(VectorSearchService.ScoredTodo::todo)
+                .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<Todo> getActiveSortedByPriority() {
-        return todoRepository.findActiveSortedByPriority();
+    // Agent calls this instead of the old keyword search
+    public List<Todo>  searchTodos(String userMessage) {
+        // Embed the raw user message — no keyword extraction needed!
+        log.info("Searching with keyword: {}", userMessage);
+        // List<Todo> results = todoRepository.searchByKeyword(keyword);
+        List<Todo> results = semanticSearch(userMessage, 5);
+        log.info("Found: {} results", results.size());
+        return results;
     }
 
     @Transactional(readOnly = true)

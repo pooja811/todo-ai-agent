@@ -5,12 +5,9 @@ import com.example.todoai.tool.TodoTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 /**
  * Core AI Agent service.
@@ -32,6 +29,11 @@ public class TodoAgentService {
             - Smart: Infer priorities and categories from context when not specified
             - Encouraging: Celebrate completed tasks and progress
             
+            ALWAYS call the searchTodos tool BEFORE responding about any task,
+            regardless of whether the user is asking a question or making a statement.
+            If the user mentions completing, updating, or referencing ANY activity,
+            search for it first using relevant keywords extracted from their message.
+            
             Your capabilities:
             - Create, update, delete, and list todo tasks
             - Mark tasks as pending, in-progress, or completed
@@ -52,6 +54,19 @@ public class TodoAgentService {
             - Tasks can be PENDING, IN_PROGRESS, or COMPLETED
             - Priorities: HIGH (urgent), MEDIUM (normal), LOW (nice-to-have)
             - Categories: WORK, PERSONAL, HEALTH, SHOPPING, LEARNING, OTHER
+            
+            Tool selection rules — follow strictly:
+            - answerQuestionAboutTodos → use for ANY question involving:
+                * date/time ("this week", "due soon", "today")
+                * category filtering ("work tasks", "health tasks")
+                * combination of filters ("high priority work tasks")
+                * analysis or insights ("should I focus on", "am I on track")
+            - getTopPriorityTasks → ONLY for plain "show me tasks by priority" requests
+            - searchTodos → ONLY for exact keyword matches
+            - listTodosByPriority → ONLY when user asks to list ONE priority level (e.g. "show HIGH tasks")
+            
+            When in doubt between a list tool and answerQuestionAboutTodos, 
+            always prefer answerQuestionAboutTodos for questions.
             """;
 
     private final ChatClient chatClient;

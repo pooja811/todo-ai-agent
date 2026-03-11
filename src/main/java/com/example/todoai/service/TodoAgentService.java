@@ -4,6 +4,7 @@ import com.example.todoai.config.InMemoryChatMemory;
 import com.example.todoai.tool.TodoTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,10 @@ public class TodoAgentService {
         this.chatMemory = new InMemoryChatMemory();
         this.chatClient = ChatClient.builder(chatModel)
                 .defaultSystem(SYSTEM_PROMPT)
-                .defaultTools(todoTools)                 // Register all @Tool methods
+                .defaultTools(todoTools)
+                .defaultAdvisors(
+                        MessageChatMemoryAdvisor.builder(chatMemory).build()
+                )
                 .build();
     }
 

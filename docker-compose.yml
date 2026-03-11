@@ -1,16 +1,4 @@
-version: '3.8'
-
 services:
-#  app:
-#    build: .
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      - REDIS_HOST=redis
-#      - REDIS_PORT=6379
-#      - REDIS_PASSWORD=admin
-#    depends_on:
-#      - redis
 
   redis:
     image: redis:7-alpine
@@ -47,6 +35,21 @@ services:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-ui
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres-ai
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    restart: unless-stopped
+
 volumes:
   redis-data:
   postgres-data:
+  pgadmin-data:
